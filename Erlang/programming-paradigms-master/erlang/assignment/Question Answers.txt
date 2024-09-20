@@ -1,0 +1,40 @@
+Answers to the Questions of Assignment 3
+
+================================ Questions ================================
+
+1.
+What would happen to linked mobile phone actors if the switch were to terminate abnormally?
+
+2.
+Suppose the switch terminates and is restarted by a supervisor.
+Can you think of a solution which would allow the switch to recover 
+its previous state (i.e., the list of subscriber MSISDNs and 
+attached mobile phone actors) as if nothing ever happened?
+
+
+================================ Answers ================================
+
+1. 
+Since the mobile phone actors do not trap the 'Exit' signal,
+once the switch is terminated, through the link propagation,
+all mobile actors will also be killed.
+
+2. 
+Firstly a supervisor would be adjusted and configured to handle the recovery of the switch. The switch itself also needs to be 
+changed. The following is a possible solution:
+
+    The switch:start/0 should be adjusted to take in a pre-created list which
+    would be the previous state of the switch. This list (preset state) will 
+    then be passed to the server_gen:start/2 -> server_gen:init/2 and then back
+    to the switch:init/1
+
+    The switch:init/1 will also need to be changed to now accept
+    the state from the previous switch instance (non-empty list)
+
+    The server_gen:loop/2, needs to have a try catch block to catch any error.
+    If an error is encountered, the switch should append the current state end send
+    to the supervisor a message with a PID, the error message, and the state in which the
+    the switch was the last int, example supervisor receives something along the lines of:
+    {'Exit', PID, Reason, State}
+
+    The supervisor then would need to restart the switch passing the state as an argument.
